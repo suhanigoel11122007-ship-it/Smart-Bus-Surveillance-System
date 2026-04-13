@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartBus — Surveillance & Ticket Integrity System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- QR Code generation library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       HEADER / NAV
+  ══════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">SMART<em>BUS</em></span>
+        <span class="logo-tag">v2.4.1</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="booking">🎟 Book Ticket</button>
+        <button class="nav-btn" data-view="dashboard">📡 Surveillance</button>
+        <button class="nav-btn" data-view="scanner">🔍 Scan QR</button>
+      </nav>
+      <div class="status-pill">
+        <span class="pulse"></span> SYSTEM LIVE
+      </div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       TICKER BAR
+  ══════════════════════════════════════ -->
+  <div class="ticker-bar">
+    <div class="ticker-track" id="tickerTrack">
+      <span>🚍 BUS-07 → Central Station — 4 seats available</span>
+      <span>🚍 BUS-12 → Airport Terminal — ON TIME</span>
+      <span>⚠️ Route 3 minor delay — 5 min</span>
+      <span>🚍 BUS-03 → Tech Park — BOARDING</span>
+      <span>✅ Fraud alert cleared — Stop 2</span>
+      <span>🚍 BUS-19 → Old City — DEPARTED</span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT AREA
+  ══════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ── VIEW: BOOKING ──────────────────── -->
+    <section class="view active" id="view-booking">
+      <div class="view-title">
+        <h1>Passenger Booking Portal</h1>
+        <p>Select your route, pay, and receive your secure digital ticket.</p>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="steps" id="stepIndicator">
+        <div class="step active" data-step="1"><span class="step-num">1</span><span class="step-label">Route</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-step="2"><span class="step-num">2</span><span class="step-label">Passenger</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-step="3"><span class="step-num">3</span><span class="step-label">Bus & Seat</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-step="4"><span class="step-num">4</span><span class="step-label">Payment</span></div>
+        <div class="step-line"></div>
+        <div class="step" data-step="5"><span class="step-num">5</span><span class="step-label">Ticket</span></div>
+      </div>
+
+      <!-- ── STEP 1: Route Selection ── -->
+      <div class="card step-card active" id="step1">
+        <div class="card-header"><span class="card-icon">🗺️</span> Select Your Route</div>
+        <div class="card-body">
+          <div class="stops-grid" id="stopsGrid">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="route-display" id="routeDisplay">
+            <div class="route-box">
+              <label>FROM</label>
+              <span id="fromStop">— Select a stop —</span>
+            </div>
+            <div class="route-arrow">→</div>
+            <div class="route-box">
+              <label>TO</label>
+              <span id="toStop">— Select a stop —</span>
+            </div>
+          </div>
+
+          <div class="fare-preview" id="farePreview" style="display:none">
+            <div class="fare-item"><span>Distance</span><span id="fareStops">—</span></div>
+            <div class="fare-item"><span>Estimated Fare</span><span id="fareAmount" class="fare-amount">—</span></div>
+          </div>
+
+          <button class="btn btn-primary" id="step1Next" disabled>Continue →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Passenger Details ── -->
+      <div class="card step-card" id="step2">
+        <div class="card-header"><span class="card-icon">👤</span> Passenger Details</div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="passengerName" placeholder="Enter your name" />
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <div class="gender-toggle">
+                <button class="gender-btn active" data-gender="male">♂ Male</button>
+                <button class="gender-btn" data-gender="female">♀ Female</button>
+                <button class="gender-btn" data-gender="other">⚧ Other</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" id="passengerPhone" placeholder="+91 XXXXX XXXXX" />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="step2Back">← Back</button>
+            <button class="btn btn-primary" id="step2Next">Continue →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Bus & Seat Assignment ── -->
+      <div class="card step-card" id="step3">
+        <div class="card-header"><span class="card-icon">🚍</span> Bus & Seat Assignment</div>
+        <div class="card-body">
+          <p class="hint-text">Available buses for your route:</p>
+          <div class="bus-list" id="busList">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div class="seat-map-wrapper" id="seatMapWrapper" style="display:none">
+            <div class="seat-map-title">Seat Map — <span id="selectedBusLabel"></span></div>
+            <div class="seat-map" id="seatMap">
+              <!-- Rendered by JS -->
+            </div>
+            <div class="seat-legend">
+              <span><span class="legend-box available"></span> Available</span>
+              <span><span class="legend-box occupied"></span> Occupied</span>
+              <span><span class="legend-box female"></span> Female</span>
+              <span><span class="legend-box assigned"></span> Your Seat</span>
+            </div>
+          </div>
+
+          <div class="assignment-result" id="assignmentResult" style="display:none">
+            <div class="assign-row"><span>🚌 Bus Assigned</span><strong id="assignedBus">—</strong></div>
+            <div class="assign-row"><span>💺 Seat Number</span><strong id="assignedSeat">—</strong></div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="step3Back">← Back</button>
+            <button class="btn btn-primary" id="step3Next" disabled>Proceed to Payment →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: Payment ── -->
+      <div class="card step-card" id="step4">
+        <div class="card-header"><span class="card-icon">💳</span> Payment</div>
+        <div class="card-body">
+          <div class="payment-summary" id="paymentSummary">
+            <!-- Rendered by JS -->
+          </div>
+          <div class="payment-qr-section">
+            <p class="hint-text">Scan to pay via UPI / Wallet</p>
+            <div class="qr-container" id="paymentQR"></div>
+            <div class="payment-methods">
+              <span class="pay-badge">UPI</span>
+              <span class="pay-badge">Paytm</span>
+              <span class="pay-badge">GPay</span>
+              <span class="pay-badge">PhonePe</span>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="step4Back">← Back</button>
+            <button class="btn btn-success" id="simulatePaySuccess">✓ Simulate Payment Success</button>
+            <button class="btn btn-danger" id="simulatePayFail">✗ Simulate Failure</button>
+          </div>
+          <div class="payment-status" id="paymentStatus"></div>
+        </div>
+      </div>
+
+      <!-- ── STEP 5: Ticket ── -->
+      <div class="card step-card" id="step5">
+        <div class="card-header"><span class="card-icon">🎟️</span> Your Digital Ticket</div>
+        <div class="card-body">
+          <div class="ticket" id="ticketCard">
+            <div class="ticket-header">
+              <div class="ticket-logo">⬡ SMARTBUS</div>
+              <div class="ticket-badge" id="ticketStatus">VALID</div>
+            </div>
+            <div class="ticket-route" id="ticketRoute"></div>
+            <div class="ticket-details" id="ticketDetails"></div>
+            <div class="ticket-qr-wrap">
+              <div id="ticketQR"></div>
+              <p class="qr-note">Show this QR to the conductor</p>
+            </div>
+            <div class="ticket-footer" id="ticketFooter"></div>
+            <div class="ticket-perforation"></div>
+          </div>
+          <div class="btn-row" style="margin-top:1.5rem">
+            <button class="btn btn-primary" id="newBooking">+ New Booking</button>
+            <button class="btn btn-ghost" id="goToDashboard">📡 View Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── VIEW: SURVEILLANCE DASHBOARD ──────────────────── -->
+    <section class="view" id="view-dashboard">
+      <div class="view-title">
+        <h1>Surveillance Dashboard</h1>
+        <p>Real-time monitoring of all active SmartBus routes.</p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-icon">🚍</div>
+          <div class="stat-val" id="statBuses">6</div>
+          <div class="stat-label">Active Buses</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-val" id="statPassengers">134</div>
+          <div class="stat-label">Passengers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💺</div>
+          <div class="stat-val" id="statOccupancy">78%</div>
+          <div class="stat-label">Occupancy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-val" id="statAlerts">2</div>
+          <div class="stat-label">Active Alerts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-val" id="statTickets">312</div>
+          <div class="stat-label">Tickets Today</div>
+        </div>
+      </div>
+
+      <!-- Bus Monitor Grid -->
+      <div class="section-label">Active Bus Fleet</div>
+      <div class="bus-monitor-grid" id="busMonitorGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Alert Log -->
+      <div class="section-label">Fraud & Alert Log</div>
+      <div class="alert-log" id="alertLog">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Route Map (visual) -->
+      <div class="section-label">Route Map</div>
+      <div class="route-map-visual" id="routeMapVisual">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ── VIEW: QR SCANNER ──────────────────── -->
+    <section class="view" id="view-scanner">
+      <div class="view-title">
+        <h1>QR Ticket Scanner</h1>
+        <p>Simulate conductor scanning to validate or flag a ticket.</p>
+      </div>
+
+      <div class="scanner-layout">
+        <div class="card scanner-card">
+          <div class="card-header"><span class="card-icon">🔍</span> Enter Ticket ID</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>Ticket ID / QR Content</label>
+              <input type="text" id="scanInput" placeholder="e.g. TKT-20240413-AB12" />
+            </div>
+            <button class="btn btn-primary" id="scanBtn">Scan Ticket</button>
+          </div>
+        </div>
+
+        <div class="card scanner-result-card" id="scanResultCard" style="display:none">
+          <div class="scan-result" id="scanResult">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-icon">📋</span> Scan History</div>
+          <div class="card-body">
+            <div class="scan-history" id="scanHistory">
+              <p class="empty-msg">No scans yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+  <footer class="footer">
+    <span>⬡ SmartBus Surveillance & Ticket Integrity System</span>
+    <span>© 2026 Urban Transit Authority · All rights reserved</span>
+  </footer>
+
+  <!-- Modal overlay -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none">
+    <div class="modal" id="modal">
+      <div class="modal-icon" id="modalIcon"></div>
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-msg" id="modalMsg"></div>
+      <button class="btn btn-primary" id="modalClose">OK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
