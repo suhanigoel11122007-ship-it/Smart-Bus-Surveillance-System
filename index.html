@@ -326,5 +326,27 @@
   </div>
 
   <script src="script.js"></script>
+<script type="module">
+  // Import Firebase modules from CDN
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSuAx-h1QT3f_DyiZ3QFX6BzPBJBGWxLI",
+    authDomain: "smart-bus-surveillance-system.firebaseapp.com",
+    projectId: "smart-bus-surveillance-system",
+    storageBucket: "smart-bus-surveillance-system.firebasestorage.app",
+    messagingSenderId: "336065991341",
+    appId: "1:336065991341:web:096dac80aea6a839882c24",
+    measurementId: "G-D7BT3H9KFM"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+  console.log("Firebase Connected 🚀");
+</script>
 </body>
 </html>
